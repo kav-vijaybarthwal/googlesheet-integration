@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <title>Integration</title>
+</head>
+
+<body>
+  <div class="min-vh-100 min-vw-100">
+    <div class="container d-flex flex-column align-items-center ">
+      <div class="my-4 py-4">
+        <div class="">
+          <button class="btn btn-primary p-2" onclick="initiateIntegration()">Initiate Integration</button>
+          <button class="btn btn-success p-2" onclick="existingIntegration()">Existing Integration</button>
+        </div>
+      </div>
+      <div id="existing-integration"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
+    integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
+    integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF"
+    crossorigin="anonymous"></script>
+  <script>
+    const initiateIntegration = () => {
+      const params = {};
+      const getUrl = window.location.href;
+      const queryString = window.location.search.replace("?", "");
+
+      queryString.split('&').forEach(pair => {
+        const [key, value] = pair.split('=');
+        params[key] = decodeURIComponent(value || '');
+      });
+      window.location.href = "/list-spreadsheets"
+
+      console.log("extract token", params)
+
+      console.log("Integration initiated")
+    }
+
+    const existingIntegration = () => {
+      const getId = document.getElementById("existing-integration");
+      const esistingListTable = document.createElement("p")
+      fetch("https://jsonplaceholder.typicode.com/users")
+        .then(res => res.json())
+        .then(data => {
+          if (data.length > 0) {
+            data.forEach(item => {
+              const nameParagraph = document.createElement('p');
+              nameParagraph.textContent = item.name;
+              getId.appendChild(nameParagraph);
+            })
+          }
+        })
+    }
+  </script>
+</body>
+
+</html>
