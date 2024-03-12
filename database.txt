@@ -1,0 +1,8 @@
+Hostname == dpg-cnn8ikv109ks73fvfr4g-a
+Port == 5432
+Database == mkto_google
+Username == mkto_google_user
+Password == rTgTI9nYwsGpEXu5TI3BosbDIS8Y9Nmc
+Internal DB url == postgres://mkto_google_user:rTgTI9nYwsGpEXu5TI3BosbDIS8Y9Nmc@dpg-cnn8ikv109ks73fvfr4g-a/mkto_google
+External DB url ==  postgres://mkto_google_user:rTgTI9nYwsGpEXu5TI3BosbDIS8Y9Nmc@dpg-cnn8ikv109ks73fvfr4g-a.singapore-postgres.render.com/mkto_google
+Psql command == PGPASSWORD=rTgTI9nYwsGpEXu5TI3BosbDIS8Y9Nmc psql -h dpg-cnn8ikv109ks73fvfr4g-a.singapore-postgres.render.com -U mkto_google_user mkto_google

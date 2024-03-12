@@ -37,8 +37,8 @@
                       <%= file.mimeType %>
                     </td> <!-- Replace 'lastName' with the actual property of your file object -->
                     <td>
-                      <button onclick="copyFileId('<%= file.id %>')" class="btn btn-primary">
-                        Select File
+                      <button onclick="copyFileId('<%= file.id %>','<%= file.name %>')" class="btn btn-primary">
+                        Link File
                       </button>
                     </td> <!-- Replace 'handle' with the actual property of your file object -->
                   </tr>
@@ -46,7 +46,38 @@
               </tbody>
             </table>
             <% } else { %>
-              <p>No files available.</p>
+              <p></p>
+              <% } %>
+        </div>
+        <!-- sheetUrls -->
+        <div class="my-5">
+          <% if (sheetUrls && sheetUrls.length> 0) { %>
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">File Name</th>
+                  <th scope="col">Sheet Url</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% sheetUrls.forEach((file, index)=> { %>
+                  <tr>
+                    <th scope="row">
+                      <%= index + 1 %>
+                    </th>
+                    <td>
+                      <%= file.sheet_name %>
+                    </td> <!-- Replace 'firstName' with the actual property of your file object -->
+                    <td>
+                      <%= file.sheet_link_url %>
+                    </td> <!-- Replace 'lastName' with the actual property of your file object -->
+                  </tr>
+                  <% }); %>
+              </tbody>
+            </table>
+            <% } else { %>
+              <p></p>
               <% } %>
         </div>
     </div>
@@ -61,19 +92,50 @@
     integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
     crossorigin="anonymous"></script>
   <script>
-    function copyFileId(fileId) {
+    let generateUrl;
+    let fileName;
+    function copyFileId(fileId, name) {
+      fileName = name
       // Copy the fileId to the clipboard
       const hostname = window.location.host
-      const generateUrl = `${hostname}/files/${fileId}`
+      generateUrl = `${hostname}/files/${fileId}?range=Sheet1`
       navigator.clipboard.writeText(fileId)
-        .then(() => {
-          console.log("File ID copied to clipboard!", generateUrl);
+        .then(async () => {
+          callModal(generateUrl)
+          await linkAndSaveToDB(fileId, generateUrl)
         })
         .catch(err => {
           console.error('Unable to copy to clipboard', err);
         });
     }
+
+    function callModal(urlToShow) {
+      const modalId = document.getElementById("linkModal");
+      const modalBody = modalId.querySelector("#modalStringValue")
+      if (modalId) {
+        modalBody.innerText = urlToShow
+        const modal = new bootstrap.Modal(modalId);
+        modal.show()
+      }
+    }
+
+    async function linkAndSaveToDB(fileId) {
+      const hostUrl = window.location.origin
+      const saveData = await fetch(`${hostUrl}/save-file-link`,
+        {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ fileId, sheetName: fileName, sheetURL: generateUrl })
+        });
+      const resp = await saveData.json();
+    }
+
+
   </script>
+  <%- include('ModalForLink') %>
+
 </body>
 
 </html>

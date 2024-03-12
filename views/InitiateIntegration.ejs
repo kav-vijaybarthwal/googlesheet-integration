@@ -42,26 +42,12 @@
         params[key] = decodeURIComponent(value || '');
       });
       window.location.href = "/list-spreadsheets"
-
-      console.log("extract token", params)
-
-      console.log("Integration initiated")
     }
 
     const existingIntegration = () => {
       const getId = document.getElementById("existing-integration");
       const esistingListTable = document.createElement("p")
-      fetch("https://jsonplaceholder.typicode.com/users")
-        .then(res => res.json())
-        .then(data => {
-          if (data.length > 0) {
-            data.forEach(item => {
-              const nameParagraph = document.createElement('p');
-              nameParagraph.textContent = item.name;
-              getId.appendChild(nameParagraph);
-            })
-          }
-        })
+      window.location.href = "/list-existing-integration"
     }
   </script>
 </body>
