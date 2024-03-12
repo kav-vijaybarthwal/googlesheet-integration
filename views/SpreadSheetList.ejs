@@ -97,7 +97,7 @@
     function copyFileId(fileId, name) {
       fileName = name
       // Copy the fileId to the clipboard
-      const hostname = window.location.host
+      const hostname = window.location.origin
       generateUrl = `${hostname}/files/${fileId}?range=Sheet1`
       navigator.clipboard.writeText(fileId)
         .then(async () => {
