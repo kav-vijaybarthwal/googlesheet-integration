@@ -215,10 +215,10 @@ exports.oAuthCallBack = async (req, res) => {
   req.session.userInfo = userInfo;
   oAuth2Client.setCredentials(tokens);
   const tockenQueryString = Object.keys(tokens).map(key => `${key}=${tokens[key]}`).join("&")
-  // res.redirect(`/list-spreadsheets?${tockenQueryString}`);
-  await saveDataToTable(tokens, userInfo)
+  setTimeout(async () => {
+    await saveDataToTable(tokens, userInfo)
+  }, 1000)
   res.redirect(`/initiate-integration`);
-  // res.send('Login successful! You can now use the API.');
 
 }
 
