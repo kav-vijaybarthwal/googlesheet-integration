@@ -10,11 +10,12 @@ const {
   postDataIntoFile,
   getSpreadsheetList,
   getIntegrationConfirmation,
-  tokenMiddleware,
   getRefreshToken,
   generateSheetUrl,
   getExistingIntegration,
-  listExistingIntegration
+  listExistingIntegration,
+  getTokenFromSheetId,
+  tokenMiddleware
 } = require("./controller/googleApiController");
 
 dotenv.config();
@@ -29,7 +30,6 @@ app.use(session({
 app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true, limit: "5mb" }))
-app.use(tokenMiddleware);
 app.use(getRefreshToken);
 
 app.set("view engine", "ejs");
@@ -58,7 +58,7 @@ app.get("/initiate-integration", getIntegrationConfirmation)
 app.get("/existing-integration", getExistingIntegration)
 app.post("/save-file-link", generateSheetUrl)
 
-app.post('/files/:id', postDataIntoFile);
+app.post('/files/:id', getTokenFromSheetId, tokenMiddleware, postDataIntoFile);
 
 const startServer = async () => {
   try {

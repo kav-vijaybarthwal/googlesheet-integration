@@ -163,24 +163,21 @@ const appendValues = async (spreadsheetId, rows, res) => {
   }
 }
 
-const isTokenExpired = () => {
+const isTokenExpired = (expiryDate) => {
   const now = new Date().getTime();
-  const expiryDate = oAuth2Client?.credentials?.expiry_date;
-
   return !expiryDate || now >= expiryDate;
 }
 
 const refreshToken = async (req, res) => {
-  const refToken = req?.session?.refresh_token;
+  const { refresh_token: refToken, } = req.userTokenInfo;
   oAuth2Client.setCredentials({ refresh_token: refToken })
   try {
     const { credentials } = await oAuth2Client.refreshAccessToken();
     const newAccessToken = credentials.access_token;
 
-    console.log('New Access Token:', credentials);
     oAuth2Client.setCredentials({
       access_token: newAccessToken,
-      refresh_token: REFRESH_TOKEN,
+      refresh_token: refToken,
       expiry_date: credentials.expiry_date,
       token_type: credentials.token_type,
     });
@@ -205,8 +202,9 @@ const listSpreadsheets = async () => {
 }
 
 exports.tokenMiddleware = async (req, res, next) => {
+  const { expiry_date } = req.userTokenInfo;
   try {
-    if (isTokenExpired()) {
+    if (isTokenExpired(expiry_date)) {
       await refreshToken(req, res);
     }
     next();
@@ -239,19 +237,46 @@ exports.oAuthCallBack = async (req, res) => {
   res.redirect(`/initiate-integration`);
 
 }
+const getUserInfoFromTable = async (id) => {
+  const getTokenQuery = `
+    SELECT ui.access_token, ui.refresh_token, ui.user_id, ui.expiry_date
+    FROM user_info ui
+    INNER JOIN sheet_url su ON ui.user_id = su.user_id
+    WHERE su.sheet_id = $1
+    `
+  try {
+    const userInfo = await db.pool.query(getTokenQuery, [id]);
+    return userInfo
+  } catch (error) {
+    return error
+  }
+}
 
-
+exports.getTokenFromSheetId = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const getUser = await getUserInfoFromTable(id)
+    if (getUser.rowCount) {
+      req.userTokenInfo = getUser?.rows[0];
+      next();
+    }
+  } catch (error) {
+    res.status(400).json({ error: "Provided sheet does not belog to any of the user, link sheet again" })
+  }
+}
 
 exports.postDataIntoFile = async (req, res) => {
   console.log("===============REQ FROM PROD===============\n", req, "\n===============REQ FROM PROD===============")
+
   const { id } = req.params;
   const { access_token: header_access_token } = req.headers;
   const isTokenPresent = await getAcceddTokenFromDB(header_access_token);
 
   try {
     const payload = Object.values(req.body);
+
     if (isTokenPresent === header_access_token) {
-      await appendValues(id, payload, res)
+      await appendValues(id, [payload], res)
     } else {
       throw new Error("access token not valid");
     }
