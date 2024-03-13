@@ -61,6 +61,18 @@ const createNewUserInfoTable = async () => {
   }
 }
 
+const getAcceddTokenFromDB = async (token) => {
+  const query = `SELECT access_token from user_info WHERE access_token = $1`;
+  try {
+    const getToken = await db.pool.query(query, [token]);
+    if (getToken.rowCount) {
+      return getToken.rows[0].access_token
+    }
+  } catch (error) {
+    return error
+  }
+}
+
 const createSheetTable = async () => {
   const query = `CREATE TABLE IF NOT EXISTS sheet_url (
     id SERIAL,
@@ -111,14 +123,19 @@ const saveDataToTable = async (tokens, userInfo) => {
   const checkUserQuery = `SELECT * FROM user_info WHERE user_id = $1`;
 
   const updateUserQuery = `UPDATE user_info
-  SET email = $1, user_name = $2, access_token = $3, sheet_id = $4, sheet_url = $5, expiry_date = $6
-  WHERE user_id = $7
-  AND ($8 IS NOT NULL OR $8 IS NOT DISTINCT FROM refresh_token)
-  `
+  SET email = $1, user_name = $2, access_token = $3, 
+  ${refreshToken ? 'refresh_token = $4,' : ''} 
+  sheet_id = $5, sheet_url = $6, expiry_date = $7
+  WHERE user_id = $8
+  AND ($4 IS NOT NULL OR $4 IS NOT DISTINCT FROM refresh_token)
+  `;
   try {
     const checkForUser = await db.pool.query(checkUserQuery, [user_id]);
     if (checkForUser.rows.length > 0) {
-      await db.pool.query(updateUserQuery, [email, user_name, access_token, null, null, expiry_date, user_id, refreshToken])
+      await db.pool.query(updateUserQuery, refreshToken ?
+        [email, user_name, access_token, refreshToken, null, null, expiry_date, user_id] :
+        [email, user_name, access_token, null, null, expiry_date, user_id]
+      );
     } else {
       await db.pool.query(query, [email, user_id, user_name, access_token, refreshToken, "", "", expiry_date])
     }
@@ -213,6 +230,7 @@ exports.oAuthCallBack = async (req, res) => {
   await createNewUserInfoTable();
   if (!tokens) return res.status(500).send('Failed to retrieve tokens');
   req.session.userInfo = userInfo;
+  req.session.access_token = tokens.access_token;
   oAuth2Client.setCredentials(tokens);
   const tockenQueryString = Object.keys(tokens).map(key => `${key}=${tokens[key]}`).join("&")
   setTimeout(async () => {
@@ -226,12 +244,24 @@ exports.oAuthCallBack = async (req, res) => {
 
 exports.postDataIntoFile = async (req, res) => {
   const { id } = req.params;
+  const { access_token: header_access_token } = req.headers;
+  const isTokenPresent = await getAcceddTokenFromDB(header_access_token);
+
   try {
-    await appendValues(id, req.body, res)
+    const payload = Object.values(req.body);
+    if (isTokenPresent === header_access_token) {
+      await appendValues(id, payload, res)
+    } else {
+      throw new Error("access token not valid");
+    }
 
   } catch (error) {
     console.error("Error in reading file", error);
-    res.status(500).json({ error: 'Internal Server Error++++' });
+    if (error.message === "access token not valid") {
+      res.status(401).json({ error: 'Access token not valid' });
+    } else {
+      res.status(500).json({ error: 'Internal Server Error++++' });
+    }
   }
 }
 
@@ -283,4 +313,3 @@ exports.listExistingIntegration = async (req, res) => {
     res.status(400).json({ error })
   }
 }
-
