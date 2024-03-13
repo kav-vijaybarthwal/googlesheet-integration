@@ -243,6 +243,7 @@ exports.oAuthCallBack = async (req, res) => {
 
 
 exports.postDataIntoFile = async (req, res) => {
+  console.log("===============REQ FROM PROD===============\n", req, "\n===============REQ FROM PROD===============")
   const { id } = req.params;
   const { access_token: header_access_token } = req.headers;
   const isTokenPresent = await getAcceddTokenFromDB(header_access_token);
