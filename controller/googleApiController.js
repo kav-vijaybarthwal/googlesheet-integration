@@ -156,6 +156,7 @@ const appendValues = async (spreadsheetId, rows, res) => {
         values: rows,
       },
     });
+    console.log("Sheetp Append value response\n", rows, "\n", response.data)
     res.json(response.data);
   } catch (error) {
     if (error.errors.length) return res.json({ message: error?.errors[0]?.message ?? "Unexpected Error" })
@@ -266,8 +267,6 @@ exports.getTokenFromSheetId = async (req, res, next) => {
 }
 
 exports.postDataIntoFile = async (req, res) => {
-  console.log("===============REQ FROM PROD===============\n", req, "\n===============REQ FROM PROD===============")
-
   const { id } = req.params;
   const { access_token: header_access_token } = req.headers;
   const isTokenPresent = await getAcceddTokenFromDB(header_access_token);
