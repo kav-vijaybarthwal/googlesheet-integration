@@ -147,7 +147,6 @@ const saveDataToTable = async (tokens, userInfo) => {
 
 const appendValues = async (spreadsheetId, rows, res) => {
   const sheets = google.sheets({ version: 'v4', auth: oAuth2Client });
-  console.log("Values to append in the spreadsheer\n", rows)
   try {
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId,
@@ -157,8 +156,9 @@ const appendValues = async (spreadsheetId, rows, res) => {
         values: rows,
       },
     });
-    console.log("Sheetp Append value response\n", rows, "\n", response.data)
-    res.json(response.data);
+    console.log("____________________\n", "Sheet enterd range is\n", response?.data?.updates?.updatedRange ?? "Sheet range not known", "\n____________________")
+    const sheetRangeResponse = response?.data?.updates?.updatedRange ?? "Sheet range not known"
+    res.json({ rows_updated: sheetRangeResponse });
   } catch (error) {
     if (error.errors.length) return res.json({ message: error?.errors[0]?.message ?? "Unexpected Error" })
     res.json(error)
@@ -275,7 +275,6 @@ exports.postDataIntoFile = async (req, res) => {
   try {
     const getPayloadBody = JSON.parse(Object.keys(req.body)[0])
     const payload = Object.values(getPayloadBody);
-
     if (isTokenPresent === header_access_token) {
       await appendValues(id, [payload], res)
     } else {
