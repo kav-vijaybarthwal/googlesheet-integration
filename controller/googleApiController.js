@@ -273,8 +273,8 @@ exports.postDataIntoFile = async (req, res) => {
   const isTokenPresent = await getAcceddTokenFromDB(header_access_token);
 
   try {
-    const payload = JSON.parse(Object.keys(req.body)[0])
-    // const payload = Object.values(req.body);
+    const getPayloadBody = JSON.parse(Object.keys(req.body)[0])
+    const payload = Object.values(getPayloadBody);
 
     if (isTokenPresent === header_access_token) {
       await appendValues(id, [payload], res)
