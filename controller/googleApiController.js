@@ -272,7 +272,8 @@ exports.postDataIntoFile = async (req, res) => {
   const isTokenPresent = await getAcceddTokenFromDB(header_access_token);
 
   try {
-    const payload = Object.values(req.body);
+    const payload = JSON.parse(Object.keys(req.body)[0])
+    // const payload = Object.values(req.body);
 
     console.log("=======PAYLOAD RECEIVED========\n", req.body, "\n====BODY ENDS HERE====\n", payload, "\n=======PAYLOAD RECEIVED========")
 
