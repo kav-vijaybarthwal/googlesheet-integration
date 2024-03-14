@@ -274,7 +274,7 @@ exports.postDataIntoFile = async (req, res) => {
   try {
     const payload = Object.values(req.body);
 
-    console.log("=======PAYLOAD RECEIVED========\n", payload, "\n=======PAYLOAD RECEIVED========")
+    console.log("=======PAYLOAD RECEIVED========\n", req.body, "\n=======PAYLOAD RECEIVED========")
 
     if (isTokenPresent === header_access_token) {
       await appendValues(id, [payload], res)
