@@ -147,6 +147,7 @@ const saveDataToTable = async (tokens, userInfo) => {
 
 const appendValues = async (spreadsheetId, rows, res) => {
   const sheets = google.sheets({ version: 'v4', auth: oAuth2Client });
+  console.log("Values to append in the spreadsheer\n", rows)
   try {
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId,
@@ -274,8 +275,6 @@ exports.postDataIntoFile = async (req, res) => {
   try {
     const payload = JSON.parse(Object.keys(req.body)[0])
     // const payload = Object.values(req.body);
-
-    console.log("=======PAYLOAD RECEIVED========\n", req.body, "\n====BODY ENDS HERE====\n", payload, "\n=======PAYLOAD RECEIVED========")
 
     if (isTokenPresent === header_access_token) {
       await appendValues(id, [payload], res)
