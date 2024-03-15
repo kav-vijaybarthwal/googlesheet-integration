@@ -32,6 +32,41 @@ exports.getRefreshToken = async (req, res, next) => {
   }
 }
 
+const createSheetDataTable = async () => {
+  const query = `CREATE TABLE IF NOT EXISTS sheet_data (
+    id SERIAL,
+    sheet_id VARCHAR(255),
+    sheet_payload JSONB,
+    is_synced BOOLEAN
+  );`
+  try {
+    await db.pool.query(query)
+  } catch (error) {
+    return error
+  }
+}
+
+const updateInDataBase = async (payload, sheet_id, res) => {
+  const query = `INSERT INTO sheet_data (sheet_id, sheet_payload, is_synced) VALUES($1, $2, $3)`
+  try {
+    await createSheetDataTable();
+    const isDataEntered = await db.pool.query(query, [sheet_id, payload, false])
+    res.status(200).json({ success: "Record is Updated" })
+  } catch (error) {
+    res.status(400).json({ error })
+  }
+}
+
+const syncSheetFromDB = async () => {
+  const query = `SELECT * FROM sheet_data WHERE is_synced = FALSE`;
+  try {
+    const data = await db.pool.query(query);
+    return data.rows;
+  } catch (error) {
+    return error
+  }
+}
+
 const retriveuserInfo = async (token) => {
   const { id_token } = token;
   try {
@@ -160,7 +195,7 @@ const appendValues = async (spreadsheetId, rows, res) => {
     const sheetRangeResponse = response?.data?.updates?.updatedRange ?? "Sheet range not known"
     res.json({ rows_updated: sheetRangeResponse });
   } catch (error) {
-    if (error.errors.length) return res.json({ message: error?.errors[0]?.message ?? "Unexpected Error" })
+    // if (error?.errors?.length) return res.json({ message: error?.errors[0]?.message ?? "Unexpected Error" })
     res.json(error)
   }
 }
@@ -276,7 +311,8 @@ exports.postDataIntoFile = async (req, res) => {
     const getPayloadBody = JSON.parse(Object.keys(req.body)[0])
     const payload = Object.values(getPayloadBody);
     if (isTokenPresent === header_access_token) {
-      await appendValues(id, [payload], res)
+      await updateInDataBase(req.body, id, res)
+      // await appendValues(id, [payload], res)
     } else {
       throw new Error("access token not valid");
     }
@@ -335,6 +371,21 @@ exports.listExistingIntegration = async (req, res) => {
     } else {
       res.status(200).json({ message: "No record Found" })
     }
+  } catch (error) {
+    res.status(400).json({ error })
+  }
+}
+
+exports.syncDBtoSheet = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const listToSync = await syncSheetFromDB()
+    const parseData = listToSync.map(item => JSON.parse(Object.keys(item.sheet_payload)))
+    const createPayload = parseData.map(item => Object.values(item))
+    if (createPayload.length > 0) {
+      await appendValues(id, createPayload, res)
+    }
+    // res.status(200).json(createPayload)
   } catch (error) {
     res.status(400).json({ error })
   }

@@ -15,7 +15,8 @@ const {
   getExistingIntegration,
   listExistingIntegration,
   getTokenFromSheetId,
-  tokenMiddleware
+  tokenMiddleware,
+  syncDBtoSheet
 } = require("./controller/googleApiController");
 
 dotenv.config();
@@ -59,6 +60,7 @@ app.get("/existing-integration", getExistingIntegration)
 app.post("/save-file-link", generateSheetUrl)
 
 app.post('/files/:id', getTokenFromSheetId, tokenMiddleware, postDataIntoFile);
+app.get("/sync-sheet/:id", getTokenFromSheetId, tokenMiddleware, syncDBtoSheet)
 
 const startServer = async () => {
   try {
