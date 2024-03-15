@@ -306,7 +306,6 @@ exports.postDataIntoFile = async (req, res) => {
   const { id } = req.params;
   const { access_token: header_access_token } = req.headers;
   const isTokenPresent = await getAcceddTokenFromDB(header_access_token);
-
   try {
     const getPayloadBody = JSON.parse(Object.keys(req.body)[0])
     const payload = Object.values(getPayloadBody);
@@ -322,6 +321,7 @@ exports.postDataIntoFile = async (req, res) => {
     if (error.message === "access token not valid") {
       res.status(401).json({ error: 'Access token not valid' });
     } else {
+      console.log("FAILD REQUEST REQQ\n", req.body)
       res.status(500).json({ error: 'Internal Server Error++++' });
     }
   }
